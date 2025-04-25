@@ -1,0 +1,17 @@
+******** Description of architechture diagram*********
+
+
+1. User request first hits the route53 for DNS resolution which redirects traffic to Application load balancer.
+
+2. ALB distributes incoming traffic across multiple EC2 instances running in Auto scaling groups within private subnets across two availability zones.These App servers process the request potentially retrieve data from Elasticcache for faster acces to frequently used information or communicate with RDS database instance in praivate subnet for data storage.
+
+3.The App infrastructure is monitored with Cloud watch for performance and health metrics.Once processing is complete the response travels
+back through the same path from ec2 instances through ALB and then potentially route53 before reaching the user browser for display.
+
+
+
+Cost optimization:-
+
+ To optimize cost Leverage  EC2 Spot Instances for non-critical workloads leveraging Reserved Instances for predictable base loads,implementing RDS Multi-AZ only for production environments,
+ utilizing ElastiCache reserved nodes for consistent cache requirements and enabling CloudWatch detailed monitoring only where necessary.Additionally, regular AWS Cost Explorer reviews and
+ tagging resources for cost allocation can help identify further optimization opportunities. 
