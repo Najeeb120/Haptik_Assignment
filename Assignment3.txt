@@ -1,0 +1,65 @@
+#!/bin/bash
+
+
+sudo apt update
+
+
+sudo apt install -y apache2
+
+
+sudo apt install -y mysql-server
+
+
+sudo mysql_secure_installation
+
+
+sudo apt install -y php libapache2-mod-php php-mysql
+
+
+DB_NAME="Wordpress"
+DB_USER="wordpress-user"
+DB_PASSWORD=$(for i in {1..10}; do echo -n ${chars[RANDOM % ${#chars[@]}]}; done) 
+sudo mysql -u root -e "CREATE DATABASE $DB_NAME;"
+sudo mysql -u root -e "CREATE USER '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';"
+sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';"
+sudo mysql -u root -e "FLUSH PRIVILEGES;"
+
+
+sudo wget https://wordpress.org/latest.tar.gz -P /tmp
+sudo tar -xvf /tmp/latest.tar.gz -C /var/www/html/
+sudo chown -R www-data:www-data /var/www/html/wordpress
+sudo chmod -R 745 /var/www/html/wordpress
+
+
+sudo tee /etc/apache2/sites-available/wordpress.conf <<EOF
+<VirtualHost *:80>
+    ServerName localhost
+    DocumentRoot /var/www/html/wordpress
+    <Directory /var/www/html/wordpress>
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+EOF
+
+
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+sudo tee /var/www/html/wordpress/wp-config.php <<EOF
+<?php
+define('DB_NAME', '$DB_NAME');
+define('DB_USER', '$DB_USER');
+define('DB_PASSWORD', '$DB_PASSWORD');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8');
+define('DB_COLLATE', '');
+\$table_prefix  = 'wp_';
+define('WP_DEBUG', false);
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+require_once(ABSPATH . 'wp-settings.php');
+EOF
