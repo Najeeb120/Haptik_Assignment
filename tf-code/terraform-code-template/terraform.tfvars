@@ -1,0 +1,5 @@
+region  = "us-east-1"
+instance-type = "t2.micro"
+key_name = "my-keypair"
+ssh_private_key_path = "~/.ssh/my-keypair.pem"
+ami_id = "ami-0c02fb55956c7xxx"
